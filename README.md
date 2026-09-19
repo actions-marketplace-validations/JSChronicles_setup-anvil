@@ -5,7 +5,7 @@ Actions. The checked-out Python project is installed alongside Anvil, so its
 plugin providers, plugin tasks, and plugin processors work through Anvil's
 normal entry-point discovery. When an Anvil command includes configuration
 files, this action installs only the advertised optional dependencies matching
-the selected providers before running the real CLI.
+the selected providers before running the CLI.
 
 The workflow continues to use normal Anvil commands. There are no action inputs
 for commands, arguments, config files, or providers.
@@ -50,23 +50,17 @@ or provider installation.
 
 ## Version selection
 
-The default action release installs an exact, integration-tested Anvil version.
-Choose another exact version with `anvil-version`:
+By default, the action installs the latest stable Anvil release from PyPI.
+Choose an exact version for reproducible workflow runs:
 
 ```yaml
 - uses: JSChronicles/setup-anvil@v0
   with:
-    anvil-version: '0.31.0'
+    anvil-version: '0.33.4'
 ```
 
-Use `latest` only when intentionally opting into a version that can change
-between otherwise identical workflow runs:
-
-```yaml
-- uses: JSChronicles/setup-anvil@v0
-  with:
-    anvil-version: latest
-```
+Set `anvil-version: latest` explicitly to document the default behavior. The
+resolved version can change between otherwise identical workflow runs.
 
 The selected version is available as the `anvil-version` action output.
 
@@ -76,7 +70,7 @@ optional override is available for older Anvil releases or unusual runners:
 ```yaml
 - uses: JSChronicles/setup-anvil@v0
   with:
-    anvil-version: '0.31.0'
+    anvil-version: '0.33.4'
     python-version: '3.14'
 ```
 
@@ -107,7 +101,7 @@ name = "acme-security-anvil"
 version = "1.0.0"
 requires-python = ">=3.12"
 dependencies = [
-  "anvil==0.31.0",
+  "anvil==0.33.4",
 ]
 
 [project.optional-dependencies]
@@ -130,7 +124,7 @@ acme = "acme_security_anvil.providers"
 
 With a configuration containing `targets[*].provider.name: snowflake`, the shim
 activates the local `snowflake` extra using the checkout's absolute path. That
-installs `company-anvil-snowflake==2.4.1`; the real Anvil process then discovers
+installs `company-anvil-snowflake==2.4.1`; the Anvil process then discovers
 its provider through `anvil.provider_packages`.
 
 A complete workflow checks out the package before setup and invokes Anvil as
@@ -151,7 +145,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: JSChronicles/setup-anvil@v0
         with:
-          anvil-version: '0.31.0'
+          anvil-version: '0.33.4'
       - run: anvil validate --config-file anvil.yaml
       - run: anvil run --config-file anvil.yaml
 ```
@@ -162,7 +156,7 @@ behavior.
 ## How provider setup works
 
 The action installs Anvil into a private uv-managed environment. It places a
-small `anvil` shim first on `PATH` while keeping the real executable at a known
+small `anvil` shim first on `PATH` while keeping the executable at a known
 private path.
 
 For an invocation containing `--config-file`, the shim:
@@ -175,7 +169,7 @@ For an invocation containing `--config-file`, the shim:
    applicable installed plugin distributions/packages;
 6. asks uv to ensure all matching extras in one serialized operation while
    preserving Anvil's exact selected version; and
-7. invokes the real Anvil executable with the untouched original arguments.
+7. invokes the Anvil executable with the untouched original arguments.
 
 uv compares the combined requirement with the actual environment, so repeated
 commands do not require a separate provider-state file. Concurrent installation
@@ -190,7 +184,7 @@ authoritative for discovery and validation.
 
 For stock components, a stock provider with a same-named Anvil extra activates
 that extra, such as `anvil[gcp]`. Providers included in base Anvil, such as AWS
-in Anvil 0.31.0, require no additional operation.
+in Anvil 0.33.4, require no additional operation.
 
 For plugin providers, a provider name activates an extra only when the same
 normalized extra name is explicitly advertised by the checked-out project or an
@@ -228,7 +222,7 @@ is available on GitHub.com but not on GitHub Enterprise Server.
   metadata, and use the checkout's absolute path.
 - Plugin distributions/packages and entry points are inspected as metadata;
   plugin implementations are not imported or executed during setup discovery.
-- The real Anvil executable is invoked by absolute path, preventing shim
+- The Anvil executable is invoked by absolute path, preventing shim
   recursion.
 - The action itself needs no GitHub token. Start with `contents: read` and add
   only permissions required by provider authentication, such as
